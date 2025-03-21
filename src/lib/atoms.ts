@@ -3,11 +3,11 @@ import { atom } from "jotai";
 import type { DateRange } from "react-day-picker";
 import type { TicketMetric } from "@/types/types";
 
-const defaultStartDate = new Date(2023, 11, 18);
+const defaultStartDate = addDays(new Date(), -60);
 
 export const dateRangeAtom = atom<DateRange | undefined>({
   from: defaultStartDate,
-  to: addDays(defaultStartDate, 6),
+  to: new Date(),
 });
 
 const cache = new Map<string, TicketMetric[]>();
