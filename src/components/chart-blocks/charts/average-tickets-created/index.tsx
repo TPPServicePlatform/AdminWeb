@@ -1,13 +1,14 @@
 "use client";
 
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { FilePlus2 } from "lucide-react";
-import { ticketChartDataAtom } from "@/lib/atoms";
+import { ticketChartDataAtom, fetchTicketChartDataAtom } from "@/lib/atoms";
 import type { TicketMetric } from "@/types/types";
 import ChartTitle from "../../components/chart-title";
 import Chart from "./chart";
 import { DatePickerWithRange } from "./components/date-range-picker";
 import MetricCard from "./components/metric-card";
+import { useEffect } from "react";
 
 const calMetricCardValue = (
   data: TicketMetric[],
@@ -22,6 +23,13 @@ const calMetricCardValue = (
 
 export default function AverageTicketsCreated() {
   const ticketChartData = useAtomValue(ticketChartDataAtom);
+  const fetchTicketChartData = useSetAtom(fetchTicketChartDataAtom);
+
+  // Trigger data fetch on component mount
+  useEffect(() => {
+    fetchTicketChartData();
+  }, [fetchTicketChartData]);
+
   const avgCreated = calMetricCardValue(ticketChartData, "created");
   const avgResolved = calMetricCardValue(ticketChartData, "resolved");
 
