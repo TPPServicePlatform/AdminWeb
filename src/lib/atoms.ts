@@ -46,7 +46,7 @@ export const fetchTicketChartDataAtom = atom(null, async (get, set) => {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch ticket data");
+    throw new Error("Failed to fetch stats data");
   }
 
   const response_dict: {

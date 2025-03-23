@@ -25,7 +25,7 @@ export default function Status() {
 
   return (
     <section className="flex h-full flex-col gap-2">
-      <ChartTitle title="Rental Status Updates" icon={CirclePercent} />
+      <ChartTitle title="Bookings Status Updates" icon={CirclePercent} />
       {loading ? (
         <div>Loading...</div>
       ) : (
