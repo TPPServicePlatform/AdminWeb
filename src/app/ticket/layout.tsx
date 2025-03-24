@@ -9,8 +9,8 @@ export default function TicketLayout({
   return (
     <>
       <TopNav title="Ticket" />
-      <main>
-        <Container>{children}</Container>
+      <main className="h-screen flex flex-col justify-end">
+        <Container className="flex-end">{children}</Container>
       </main>
     </>
   );
