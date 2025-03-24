@@ -27,19 +27,19 @@ export default function ClientSatisfaction() {
 
   const clientSatisfactionOptions = [
     {
-      label: "Positive",
+      label: "Positive (5 ★)",
       color: "#5fb67a",
       percentage: data.clientSatisfaction.positive,
       icon: <ThumbsUp className="h-6 w-6" stroke="#5fb67a" fill="#5fb67a" />,
     },
     {
-      label: "Neutral",
+      label: "Neutral (3 or 4 ★)",
       color: "#f5c36e",
       percentage: data.clientSatisfaction.neutral,
       icon: <ThumbsUp className="h-6 w-6" stroke="#f5c36e" fill="#f5c36e" />,
     },
     {
-      label: "Negative",
+      label: "Negative (1 or 2 ★)",
       color: "#da6d67",
       percentage: data.clientSatisfaction.negative,
       icon: <ThumbsDown className="h-6 w-6" stroke="#da6d67" fill="#da6d67" />,
