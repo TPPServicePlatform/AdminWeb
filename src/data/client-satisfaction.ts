@@ -15,9 +15,9 @@ export async function fetchClientSatisfaction() {
 
   return {
     clientSatisfaction: {
-      positive: Math.round((results.positive / totalReviews) * 100) / 100,
-      neutral: Math.round((results.neutral / totalReviews) * 100) / 100,
-      negative: Math.round((results.negative / totalReviews) * 100) / 100,
+      positive: parseFloat(((results.positive / totalReviews) * 100).toFixed(2)),
+      neutral: parseFloat(((results.neutral / totalReviews) * 100).toFixed(2)),
+      negative: parseFloat(((results.negative / totalReviews) * 100).toFixed(2)),
     },
     totalReviews: totalReviews,
   };
