@@ -16,23 +16,29 @@ interface FetchChatsResponse {
   tks: Chat[];
 }
 
-function type(tk_type: Chat["type"]): { color: string; label: string, hover: string } {
+function type(tk_type: Chat["type"]): { color: string; label: string, hover: string, selected: string, text: string } {
   const labels = {
     "help_tk": "Help",
     "report_tk": "Report",
   };
   const colors = {
-    "help_tk": "bg-blue-600",
-    "report_tk": "bg-purple-600",
+    "help_tk": "blue-600",
+    "report_tk": "purple-600",
   };
   const hover = {
     "help_tk": "hover:bg-blue-300",
     "report_tk": "hover:bg-purple-300",
   };
+  const selected = {
+    "help_tk": "to-blue-400",
+    "report_tk": "to-purple-400",
+  }
   return {
-    color: colors[tk_type],
+    color: "bg-" + colors[tk_type],
     label: labels[tk_type],
     hover: hover[tk_type],
+    selected: selected[tk_type],
+    text: "font-bold text-" + colors[tk_type],
   };
 }
 
@@ -59,17 +65,19 @@ export default function TicketPage() {
         <ul className="mt-4 space-y-2">
           {chats.map((chat) => (
             <li key={chat.uuid} className="text-left">
-              <Button
+                <Button
                 color="default"
-                variant="solid"
-                className={`w-full justify-start rounded-md p-3 shadow-md hover:shadow-lg transition-shadow duration-200 ${type(chat.type).color} ${type(chat.type).hover}`}
-                onPress={() => handleButtonClick(chat)}
-              >
+                className={`w-full justify-start rounded-md p-3 shadow-md hover:shadow-lg transition-shadow duration-200 ${
+                  ticketInfo?.uuid === chat.uuid 
+                  ? "bg-gradient-to-tr from-white " + type(chat.type).selected + " text-white shadow-lg" 
+                  : type(chat.type).color
+                } ${type(chat.type).hover}`}
+                onPress={() => handleButtonClick(chat)}>
                 <div className="flex flex-col items-start">
-                  <div className="font-semibold">{type(chat.type).label} - {chat.title}</div>
+                  <div className={`text-sm ${ticketInfo?.uuid === chat.uuid ? type(chat.type).text : "text-white"}`}>{type(chat.type).label} - {chat.title}</div>
                   <div className="text-sm text-gray-400">{chat.updated_at}</div>
                 </div>
-              </Button>
+                </Button>
             </li>
           ))}
         </ul>
@@ -78,32 +86,29 @@ export default function TicketPage() {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col">
         <div className="p-6 bg-gray-700 text-white">
-          <h2 className="text-xl font-bold">Chat Details</h2>
+          <h2 className="text-xl font-bold">{ticketInfo ? (ticketInfo.type === "report_tk" ? "Report " : "Help ") : ""}Ticket Details ⇣</h2>
             {ticketInfo ? (
             <div>
-              <h3 className="text-lg font-semibold">{ticketInfo.title}</h3>
-              <p className="mt-2">{ticketInfo.description}</p>
-              <p className="mt-2 text-sm text-gray-400">
-              Created At: {ticketInfo.created_at}
-              </p>
-              <p className="mt-1 text-sm text-gray-400">
-              Updated At: {ticketInfo.updated_at}
+              <h3 className="text-lg font-semibold">Title: {ticketInfo.title}</h3>
+              <p className="mt-2">Description: {ticketInfo.description}</p>
+                <p className="mt-2 text-sm text-gray-400">
+                Created on: {new Date(ticketInfo.created_at).toLocaleDateString()}
+                </p>
+                <p className="mt-1 text-sm text-gray-400">
+                Last updated on: {new Date(ticketInfo.updated_at).toLocaleDateString()}
               </p>
               {ticketInfo.type === "help_tk" && (
               <p className="mt-2 text-sm text-gray-400">
-                Requester: {(ticketInfo as HelpTK).requester_username} (ID: {(ticketInfo as HelpTK).requester_id})
+                Requester user: {(ticketInfo as HelpTK).requester_username}
               </p>
               )}
               {ticketInfo.type === "report_tk" && (
               <>
                 <p className="mt-2 text-sm text-gray-400">
-                Report Type: {(ticketInfo as ReportTK).report_type}
+                The user <strong>{(ticketInfo as ReportTK).complainant_username}</strong> is reporting a{(ticketInfo as ReportTK).report_type == "ACCOUNT" ? "n" : ""} {(ticketInfo as ReportTK).report_type.toLowerCase()} 
                 </p>
                 <p className="mt-1 text-sm text-gray-400">
-                Target: {(ticketInfo as ReportTK).target_name}
-                </p>
-                <p className="mt-1 text-sm text-gray-400">
-                Complainant: {(ticketInfo as ReportTK).complainant_username}
+                {toTitleCase((ticketInfo as ReportTK).report_type)} reported: {(ticketInfo as ReportTK).target_name}
                 </p>
               </>
               )}
@@ -155,6 +160,11 @@ async function fetchChats(setChats: React.Dispatch<React.SetStateAction<Chat[]>>
   }
 }
 
+function toTitleCase(str: string): string {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 interface Ticket {
   uuid: string;
   title: string;
@@ -203,10 +213,10 @@ async function fetchServiceName(service_id: string): Promise<string> {
     throw new Error("Failed to fetch service details");
   }
   const data = await response.json();
-  const service_name = data.data.name;
+  const service_name = data.data.service_name;
   const provider_id = data.data.provider_id;
   const provider_name = await fetchUserName(provider_id);
-  return `${service_name} (by ${provider_name} [ID ${provider_id}])`;
+  return `${service_name} (provided by ${provider_name})`;
 }
 
 async function fetchTicketInfo(tk_uuid: string, type: Chat["type"]): Promise<Ticket> {
