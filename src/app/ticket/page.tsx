@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { MessageList } from "../../chat/message-list";
 import { NewMessageForm } from "../../chat/new-message-form";
 import { Button } from "@heroui/button";
+import { Message } from "@/chat/message";
+
+
 
 interface Chat {
   uuid: string;
@@ -16,14 +19,14 @@ interface FetchChatsResponse {
   tks: Chat[];
 }
 
-function type(tk_type: Chat["type"]): { color: string; label: string, hover: string, selected: string, text: string } {
+function type(tk_type: Chat["type"]): { color: string; label: string, hover: string, selected: string, text: string, msg: string } {
   const labels = {
     "help_tk": "Help",
     "report_tk": "Report",
   };
   const colors = {
-    "help_tk": "blue-600",
-    "report_tk": "purple-600",
+    "help_tk": "blue",
+    "report_tk": "purple",
   };
   const hover = {
     "help_tk": "hover:bg-blue-300",
@@ -34,23 +37,37 @@ function type(tk_type: Chat["type"]): { color: string; label: string, hover: str
     "report_tk": "to-purple-400",
   }
   return {
-    color: "bg-" + colors[tk_type],
+    color: "bg-" + colors[tk_type] + "-600",
     label: labels[tk_type],
     hover: hover[tk_type],
     selected: selected[tk_type],
-    text: "font-bold text-" + colors[tk_type],
+    text: "font-bold text-" + colors[tk_type] + "-600",
+    msg: "bg-" + colors[tk_type] + "-800",
   };
 }
 
 export default function TicketPage() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [ticketInfo, setTicketInfo] = useState<Ticket | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]); // New state for messages
+  const [username, setUsername] = useState("current_user"); // Hardcoded session data for now
+  const [color, setColor] = useState("bg-gray-800");
 
   const handleButtonClick = async (chat: Chat) => {
-      const newTicketInfo = await fetchTicketInfo(chat.uuid, chat.type);
-      setTicketInfo(newTicketInfo);
+    const newTicketInfo = await fetchTicketInfo(chat.uuid, chat.type);
+    setTicketInfo(newTicketInfo);
 
-      // You can update the state or perform other actions with ticketInfo here
+    // Fetch messages for the selected ticket
+    const newMessages = await fetchMessages(chat.uuid);
+    setMessages(newMessages);
+
+    setColor(type(chat.type).msg);
+
+    if (newTicketInfo.type === "help_tk") {
+      setUsername((newTicketInfo as HelpTK).requester_username);
+    } else {
+      setUsername((newTicketInfo as ReportTK).complainant_username);
+    }
   };
 
   useEffect(() => {
@@ -60,67 +77,18 @@ export default function TicketPage() {
   return (
     <div className="flex">
       {/* Sidebar for all chats */}
-      <div className="w-1/4 bg-gray-800 p-4 h-screen">
-        <div className="text-white">All Chats</div>
-        <ul className="mt-4 space-y-2">
-          {chats.map((chat) => (
-            <li key={chat.uuid} className="text-left">
-                <Button
-                color="default"
-                className={`w-full justify-start rounded-md p-3 shadow-md hover:shadow-lg transition-shadow duration-200 ${
-                  ticketInfo?.uuid === chat.uuid 
-                  ? "bg-gradient-to-tr from-white " + type(chat.type).selected + " text-white shadow-lg" 
-                  : type(chat.type).color
-                } ${type(chat.type).hover}`}
-                onPress={() => handleButtonClick(chat)}>
-                <div className="flex flex-col items-start">
-                  <div className={`text-sm ${ticketInfo?.uuid === chat.uuid ? type(chat.type).text : "text-white"}`}>{type(chat.type).label} - {chat.title}</div>
-                  <div className="text-sm text-gray-400">{chat.updated_at}</div>
-                </div>
-                </Button>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {addButton(chats, ticketInfo, handleButtonClick)}
 
       {/* Main chat area */}
       <div className="flex-1 flex flex-col">
         <div className="p-6 bg-gray-700 text-white">
           <h2 className="text-xl font-bold">{ticketInfo ? (ticketInfo.type === "report_tk" ? "Report " : "Help ") : ""}Ticket Details ⇣</h2>
-            {ticketInfo ? (
-            <div>
-              <h3 className="text-lg font-semibold">Title: {ticketInfo.title}</h3>
-              <p className="mt-2">Description: {ticketInfo.description}</p>
-                <p className="mt-2 text-sm text-gray-400">
-                Created on: {new Date(ticketInfo.created_at).toLocaleDateString()}
-                </p>
-                <p className="mt-1 text-sm text-gray-400">
-                Last updated on: {new Date(ticketInfo.updated_at).toLocaleDateString()}
-              </p>
-              {ticketInfo.type === "help_tk" && (
-              <p className="mt-2 text-sm text-gray-400">
-                Requester user: {(ticketInfo as HelpTK).requester_username}
-              </p>
-              )}
-              {ticketInfo.type === "report_tk" && (
-              <>
-                <p className="mt-2 text-sm text-gray-400">
-                The user <strong>{(ticketInfo as ReportTK).complainant_username}</strong> is reporting a{(ticketInfo as ReportTK).report_type == "ACCOUNT" ? "n" : ""} {(ticketInfo as ReportTK).report_type.toLowerCase()} 
-                </p>
-                <p className="mt-1 text-sm text-gray-400">
-                {toTitleCase((ticketInfo as ReportTK).report_type)} reported: {(ticketInfo as ReportTK).target_name}
-                </p>
-              </>
-              )}
-            </div>
-            ) : (
-            <p>Select a chat to view its details here.</p>
-            )}
+          {ticketInfo ? (addTicketInfo(ticketInfo)) : (<p>Select a chat to view its details here.</p>)}
         </div>
         <div className="max-w-4xl flex-1 flex">
-            <div style={{ marginLeft: "2.5vw", marginTop: "2.5vh" }} className="flex-1">
-            <MessageList />
-            </div>
+          <div style={{ marginLeft: "2.5vw", marginTop: "2.5vh" }} className="flex-1">
+            <MessageList messages={messages} username={username} color={color} /> {/* Pass messages to MessageList */}
+          </div>
         </div>
 
         <div className="p-6 bg-white/5 border-t border-[#363739]">
@@ -131,6 +99,57 @@ export default function TicketPage() {
       </div>
     </div>
   );
+}
+
+function addTicketInfo(ticketInfo: Ticket) {
+  return <div>
+    <h3 className="text-lg font-semibold">Title: {ticketInfo.title}</h3>
+    <p className="mt-2">Description: {ticketInfo.description}</p>
+    <p className="mt-2 text-sm text-gray-400">
+      Created on: {new Date(ticketInfo.created_at).toLocaleDateString()}
+    </p>
+    <p className="mt-1 text-sm text-gray-400">
+      Last updated on: {new Date(ticketInfo.updated_at).toLocaleDateString()}
+    </p>
+    {ticketInfo.type === "help_tk" && (
+      <p className="mt-2 text-sm text-gray-400">
+        Requester user: {(ticketInfo as HelpTK).requester_username}
+      </p>
+    )}
+    {ticketInfo.type === "report_tk" && (
+      <>
+        <p className="mt-2 text-sm text-gray-400">
+          The user <strong>{(ticketInfo as ReportTK).complainant_username}</strong> is reporting a{(ticketInfo as ReportTK).report_type == "ACCOUNT" ? "n" : ""} {(ticketInfo as ReportTK).report_type.toLowerCase()}
+        </p>
+        <p className="mt-1 text-sm text-gray-400">
+          {toTitleCase((ticketInfo as ReportTK).report_type)} reported: {(ticketInfo as ReportTK).target_name}
+        </p>
+      </>
+    )}
+  </div>;
+}
+
+function addButton(chats: Chat[], ticketInfo: Ticket | null, handleButtonClick: (chat: Chat) => Promise<void>) {
+  return <div className="w-1/4 bg-gray-800 p-4 h-screen">
+    <div className="text-white">All Chats</div>
+    <ul className="mt-4 space-y-2">
+      {chats.map((chat) => (
+        <li key={chat.uuid} className="text-left">
+          <Button
+            color="default"
+            className={`w-full justify-start rounded-md p-3 shadow-md hover:shadow-lg transition-shadow duration-200 ${ticketInfo?.uuid === chat.uuid
+              ? "bg-gradient-to-tr from-white " + type(chat.type).selected + " text-white shadow-lg"
+              : type(chat.type).color} ${type(chat.type).hover}`}
+            onPress={() => handleButtonClick(chat)}>
+            <div className="flex flex-col items-start">
+              <div className={`text-sm ${ticketInfo?.uuid === chat.uuid ? type(chat.type).text : "text-white"}`}>{type(chat.type).label} - {chat.title}</div>
+              <div className="text-sm text-gray-400">{chat.updated_at}</div>
+            </div>
+          </Button>
+        </li>
+      ))}
+    </ul>
+  </div>;
 }
 
 async function fetchChats(setChats: React.Dispatch<React.SetStateAction<Chat[]>>): Promise<void> {
@@ -220,7 +239,7 @@ async function fetchServiceName(service_id: string): Promise<string> {
 }
 
 async function fetchTicketInfo(tk_uuid: string, type: Chat["type"]): Promise<Ticket> {
-  const type_url = type==="help_tk" ? "help" : "report";
+  const type_url = type === "help_tk" ? "help" : "report";
   const response = await fetch(`http://localhost/api/support/${type_url}/${tk_uuid}`, {
     method: "GET",
     headers: {
@@ -256,5 +275,37 @@ async function fetchTicketInfo(tk_uuid: string, type: Chat["type"]): Promise<Tic
       target_name: data_dict.type === "ACCOUNT" ? data_dict.target_identifier : await fetchServiceName(data_dict.target_identifier),
       complainant_username: data_dict.complainant,
     } as ReportTK;
+  }
+}
+
+// New function to fetch messages for a ticket
+async function fetchMessages(ticketId: string): Promise<Message[]> {
+  try {
+    const response = await fetch(`http://localhost/api/support/chats/all/${ticketId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      mode: "cors", // Ensure this is set to "cors" for proper CORS handling
+    }); 
+    if (!response.ok) {
+      throw new Error("Failed to fetch messages");
+    }
+    const data = await response.json();
+    const messages = data["messages"]
+    // messages is an array of messages, can be empty
+    if (!Array.isArray(messages)) {
+      throw new Error("Failed to fetch messages: Unexpected response");
+    }
+    if (messages.length === 0) {
+      return [];
+    }
+    return messages;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error("Error fetching messages: " + error.message);
+    } else {
+      throw new Error("Error fetching messages: Unknown error");
+    }
   }
 }

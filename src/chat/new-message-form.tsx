@@ -1,9 +1,7 @@
 import { useState } from "react";
 import useSound from "use-sound";
 
-
 export const NewMessageForm = () => {
-  // const { data: session } = useSession();
   const { data: session } = { data: { username: "current_user" } }; // Hardcoded session data for now
   const [play] = useSound("sent.wav");
   const [body, setBody] = useState("");
@@ -11,21 +9,34 @@ export const NewMessageForm = () => {
   //   onCompleted: () => play(),
   // });
 
+  const sendMessage = async () => {
+
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: session?.username ?? "",
+        body,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to send message");
+    }
+
+    // play();
+    setBody("");
+
+  };
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-
         if (body) {
-          // addNewMessage({
-          //   variables: {
-          //     username: session?.username ?? "",
-          //     avatar: session?.user?.image,
-          //     body,
-          //   },
-          // });
-          setBody("");
+          sendMessage();
         }
       }}
       className="flex items-center space-x-3"
