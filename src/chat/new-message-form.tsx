@@ -1,24 +1,21 @@
 import { useState } from "react";
 import useSound from "use-sound";
 
-export const NewMessageForm = () => {
+export const NewMessageForm = ({ tkId, type }: { tkId: string; type: "help_tk" | "report_tk" }) => {
   const { data: session } = { data: { username: "current_user" } }; // Hardcoded session data for now
   const [play] = useSound("sent.wav");
   const [body, setBody] = useState("");
-  // const [addNewMessage] = useMutation(AddNewMessageMutation, {
-  //   onCompleted: () => play(),
-  // });
 
   const sendMessage = async () => {
-
-    const response = await fetch("/api/messages", {
-      method: "POST",
+    const response = await fetch(`http://localhost/api/support/chats/newmsg/${tkId}`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username: session?.username ?? "",
-        body,
+        support_agent: true,
+        message: body,
+        tk_type: type === "help_tk" ? "HELP" : "REPORT",
       }),
     });
 
@@ -26,9 +23,7 @@ export const NewMessageForm = () => {
       throw new Error("Failed to send message");
     }
 
-    // play();
     setBody("");
-
   };
 
   return (
