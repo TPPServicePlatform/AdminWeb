@@ -100,10 +100,10 @@ export default function TicketPage() {
                 Report Type: {(ticketInfo as ReportTK).report_type}
                 </p>
                 <p className="mt-1 text-sm text-gray-400">
-                Target: {(ticketInfo as ReportTK).target_name} (ID: {(ticketInfo as ReportTK).target_id})
+                Target: {(ticketInfo as ReportTK).target_name}
                 </p>
                 <p className="mt-1 text-sm text-gray-400">
-                Complainant: {(ticketInfo as ReportTK).complainant_username} (ID: {(ticketInfo as ReportTK).complainant_id})
+                Complainant: {(ticketInfo as ReportTK).complainant_username}
                 </p>
               </>
               )}
@@ -173,7 +173,6 @@ interface ReportTK extends Ticket {
   report_type: "ACCOUNT" | "SERVICE";
   target_id: string;
   target_name: string;
-  complainant_id: string;
   complainant_username: string;
 }
 
@@ -244,9 +243,8 @@ async function fetchTicketInfo(tk_uuid: string, type: Chat["type"]): Promise<Tic
       type: "report_tk",
       report_type: data_dict.type,
       target_id: data_dict.target_identifier,
-      target_name: data_dict.type === "ACCOUNT" ? await fetchUserName(data_dict.target_identifier) : await fetchServiceName(data_dict.target_identifier),
-      complainant_id: data_dict.complainant,
-      complainant_username: await fetchUserName(data_dict.complainant),
+      target_name: data_dict.type === "ACCOUNT" ? data_dict.target_identifier : await fetchServiceName(data_dict.target_identifier),
+      complainant_username: data_dict.complainant,
     } as ReportTK;
   }
 }
