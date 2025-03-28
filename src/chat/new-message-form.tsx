@@ -1,9 +1,7 @@
 import { useState } from "react";
-import useSound from "use-sound";
 
 export const NewMessageForm = ({ tkId, type }: { tkId: string; type: "help_tk" | "report_tk" }) => {
   const { data: session } = { data: { username: "current_user" } }; // Hardcoded session data for now
-  const [play] = useSound("sent.wav");
   const [body, setBody] = useState("");
 
   const sendMessage = async () => {
