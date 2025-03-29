@@ -19,7 +19,7 @@ interface FetchChatsResponse {
   tks: Chat[];
 }
 
-function type(tk_type: Chat["type"]): { color: string; label: string, hover: string, selected: string, text: string, msg: string } {
+function tkType(tk_type: Chat["type"]): { color: string; label: string, hover: string, selected: string, text: string, msg: string } {
   const labels = {
     "help_tk": "Help",
     "report_tk": "Report",
@@ -61,7 +61,7 @@ export default function TicketPage() {
     const newMessages = await fetchMessages(chat.uuid);
     setMessages(newMessages);
 
-    setColor(type(chat.type).msg);
+    setColor(tkType(chat.type).msg);
 
     if (newTicketInfo.type === "help_tk") {
       setUsername((newTicketInfo as HelpTK).requester_username);
@@ -137,12 +137,10 @@ function addButton(chats: Chat[], ticketInfo: Ticket | null, handleButtonClick: 
         <li key={chat.uuid} className="text-left">
           <Button
             color="default"
-            className={`w-full justify-start rounded-md p-3 shadow-md hover:shadow-lg transition-shadow duration-200 ${ticketInfo?.uuid === chat.uuid
-              ? "bg-gradient-to-tr from-white " + type(chat.type).selected + " text-white shadow-lg"
-              : type(chat.type).color} ${type(chat.type).hover}`}
+            className={`w-full justify-start rounded-md p-3 shadow-md hover:shadow-lg transition-shadow duration-200 ${ticketInfo?.uuid === chat.uuid ? "bg-gradient-to-tr from-white " + tkType(chat.type).selected + " text-white shadow-lg" : tkType(chat.type).color} ${tkType(chat.type).hover}`}
             onPress={() => handleButtonClick(chat)}>
             <div className="flex flex-col items-start">
-              <div className={`text-sm ${ticketInfo?.uuid === chat.uuid ? type(chat.type).text : "text-white"}`}>{type(chat.type).label} - {chat.title}</div>
+              <div className={`text-sm ${ticketInfo?.uuid === chat.uuid ? tkType(chat.type).text : "text-white"}`}>{tkType(chat.type).label} - {chat.title}</div>
               <div className="text-sm text-gray-400">{chat.updated_at}</div>
             </div>
           </Button>
