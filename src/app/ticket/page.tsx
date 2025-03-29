@@ -51,7 +51,6 @@ export default function TicketPage() {
   const [ticketInfo, setTicketInfo] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<Message[]>([]); // New state for messages
   const [username, setUsername] = useState("current_user"); // Hardcoded session data for now
-  const [color, setColor] = useState("bg-gray-800");
 
   const handleButtonClick = async (chat: Chat) => {
     const newTicketInfo = await fetchTicketInfo(chat.uuid, chat.type);
@@ -60,8 +59,6 @@ export default function TicketPage() {
     // Fetch messages for the selected ticket
     const newMessages = await fetchMessages(chat.uuid);
     setMessages(newMessages);
-
-    setColor(tkType(chat.type).msg);
 
     if (newTicketInfo.type === "help_tk") {
       setUsername((newTicketInfo as HelpTK).requester_username);
@@ -87,7 +84,7 @@ export default function TicketPage() {
         </div>
         <div className="max-w-4xl flex-1 flex">
           <div style={{ marginLeft: "2.5vw", marginTop: "2.5vh" }} className="flex-1">
-            <MessageList messages={messages} username={username} color={color} /> {/* Pass messages to MessageList */}
+            <MessageList messages={messages} username={username}/> {/* Pass messages to MessageList */}
           </div>
         </div>
 

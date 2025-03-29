@@ -7,7 +7,7 @@ interface MessageListProps {
   messages: Message[]; // Accept messages as a prop
 }
 
-export const MessageList = ({ messages, username, color }: MessageListProps & { username: string; color: string }) => {
+export const MessageList = ({ messages, username }: MessageListProps & { username: string }) => {
   const [scrollRef, inView, entry] = useInView({
     trackVisibility: true,
     delay: 1000,
@@ -44,7 +44,7 @@ export const MessageList = ({ messages, username, color }: MessageListProps & { 
         <div
           key={index}
           className={`p-3 rounded-md text-white ${
-            message.sender === "USER" ? color : "bg-gray-800"
+            message.sender === "USER" ? "bg-gray-600" : "bg-gray-800"
           }`}
         >
           <div className="text-sm font-semibold">
